@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
+use App\Http\Requests\LoginRequest;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -43,5 +44,8 @@ class FortifyServiceProvider extends ServiceProvider
 
             return Limit::perMinute(10)->by($email . $request->ip());
         });
+
+        $this->app->bind(FortifyLoginRequest::class,
+        LoginRequest::class);
     }
 }
