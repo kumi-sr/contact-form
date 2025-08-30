@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ContactRequest;
 use App\Models\Category;
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContactController extends Controller
 {
@@ -17,12 +20,55 @@ class ContactController extends Controller
     public function confirm(ContactRequest $request)
     {
         $contacts=$request->all();
-        return view('confirm', compact('contacts'));
+        $category=Category::find($request->category_id);
+        return view('confirm', compact('contacts','category'));
     }
 
     public function store(ContactRequest $request)
     {
-        Contact::create($contact);
+        if ($request->has('back')){
+            return redirect('/')->withInput();
+        }
+
+        $request['tell'] = $request->tel_1 . $request->tel_2 . $request->tel_3;
+        Contact::create(
+            $request->only([
+                'category_id',
+                'first_name',
+                'last_name',
+                'gender',
+                'email',
+                'tell',
+                'address',
+                'building',
+                'detail'
+            ])
+        );
+
         return view('thanks');
     }
+
+    public function admin()
+    {
+        $contacts = Contact::with('category')->paginate(7);
+        $categories = Category::all();
+        $csvData = Contact::all();
+        return view('admin', compact('contacts', 'categories', 'csvData'));
+    }
+
+    public function search(Request $request)
+    {
+        if ($request->has('reset')) {
+            return redirect('/admin')->withInput();
+        }
+        $query = Contact::query();
+
+        $query = $this->getSearchQuery($request, $query);
+
+        $contacts = $query->paginate(7);
+        $acvData = $query->get();
+        $categories = Category::all();
+        return view('admin', compact('contacts', 'categories', 'csvData'));
+    }
+
 }
