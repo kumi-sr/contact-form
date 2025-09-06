@@ -66,9 +66,17 @@ class ContactController extends Controller
         $query = $this->getSearchQuery($request, $query);
 
         $contacts = $query->paginate(7);
-        $acvData = $query->get();
+        $csvData = $query->get();
         $categories = Category::all();
         return view('admin', compact('contacts', 'categories', 'csvData'));
     }
+
+    public function destroy(Request $request)
+    {
+        Contact::find($request->id)->delete();
+        return redirect('/admin');
+    }
+
+    
 
 }
